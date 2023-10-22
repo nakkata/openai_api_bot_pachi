@@ -1,4 +1,36 @@
 # 以下を「app.py」に書き込み
+
+# ChatGPTで解析
+!pip install openai==0.28.0
+!pip install pandas
+!pip install transformers==4.32.1
+!pip install langchain==0.0.279
+#!pip install beautifulsoup4==4.11.2
+!pip install textract
+#!pip install codecs
+#!pip install six==1.13.0
+!pip install requests
+!pip install pypdf
+!pip install tiktoken
+!pip install faiss-gpu
+
+# ChatGPTで解析
+import os
+import pandas as pd
+import requests
+import textract
+import codecs
+from bs4 import BeautifulSoup
+import matplotlib.pyplot as plt
+from transformers import GPT2TokenizerFast
+from langchain.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.chains.question_answering import load_qa_chain
+from langchain.llms import OpenAI
+from langchain.chains import ConversationalRetrievalChain
+
 import streamlit as st
 import openai
 # import secret_keys  # 外部ファイルにAPI keyを保存
