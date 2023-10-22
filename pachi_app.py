@@ -1,5 +1,5 @@
 # 以下を「app.py」に書き込み
-
+"""
 # ChatGPTで解析
 !pip install openai==0.28.0
 !pip install pandas
@@ -30,7 +30,7 @@ from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 from langchain.chains import ConversationalRetrievalChain
-
+"""
 import streamlit as st
 import openai
 # import secret_keys  # 外部ファイルにAPI keyを保存
