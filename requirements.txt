@@ -1,1 +1,7 @@
-streamlit streamlit_chat langchain openai faiss-cpu tiktoken pypdf
+streamlit
+streamlit_chat
+langchain
+openai
+faiss-cpu
+tiktoken
+pypdf
