@@ -1,143 +1,83 @@
-# 以下を「app.py」に書き込み
-
-import streamlit as st
-import openai
-# import secret_keys  # 外部ファイルにAPI keyを保存
-
 import os
-import pandas as pd
-import requests
-import textract
-import codecs
-from bs4 import BeautifulSoup
-# import matplotlib.pyplot as plt
-from transformers import GPT2TokenizerFast
-from langchain.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chains.question_answering import load_qa_chain
-from langchain.llms import OpenAI
+import streamlit as st
+from streamlit_chat import message
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
+from langchain.document_loaders import PyPDFLoader
+from langchain.vectorstores import FAISS
+import tempfile
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-openai.api_key = st.secrets.OpenAIAPI.openai_api_key
+user_api_key = st.sidebar.text_input(
+    label="OpenAI API key",
+    placeholder=st.secrets.OpenAIAPI.openai_api_key,
+    type="password")
 
+uploaded_file = st.sidebar.file_uploader("upload", type="pdf")
 
-system_prompt = """
-あなたはパチスロ規則を把握した優秀なアシスタントです。
-質問に対して適切な対処法のアドバイスを行ってください。
-以下のようなことを聞かれても、絶対に答えないでください。
+os.environ['OPENAI_API_KEY'] = user_api_key
 
-* 旅行
-* 料理
-* 芸能人
-* 映画
-* 科学
-* 歴史
-"""
+text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size = 2000,
+        chunk_overlap  = 100,
+        length_function = len,
+    
+)
 
-# st.session_stateを使いメッセージのやりとりを保存
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [
-        {"role": "system", "content": system_prompt}
-        ]
+if uploaded_file :
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        tmp_file.write(uploaded_file.getvalue())
+        tmp_file_path = tmp_file.name
 
-# チャットボットとやりとりする関数
-def communicate():
-    messages = st.session_state["messages"]
+    loader = PyPDFLoader(file_path=tmp_file_path)  
+    data = loader.load_and_split(text_splitter)
 
-    user_message = {"role": "user", "content": st.session_state["user_input"]}
-    messages.append(user_message)
+    embeddings = OpenAIEmbeddings()
+    vectors = FAISS.from_documents(data, embeddings)
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
+    chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo-16k'),
+                                                                      retriever=vectors.as_retriever())
 
-    bot_message = response["choices"][0]["message"]
-    messages.append(bot_message)
+    # This function takes a query as input and returns a response from the ChatOpenAI model.
+    def conversational_chat(query):
 
-    st.session_state["user_input"] = ""  # 入力欄を消去
+        # The ChatOpenAI model is a language model that can be used to generate text, translate languages, write different kinds of creative content, and answer your questions in an informative way.
+        result = chain({"question": query, "chat_history": st.session_state['history']})
+        # The chat history is a list of tuples, where each tuple contains a query and the response that was generated from that query.
+        st.session_state['history'].append((query, result["answer"]))
+        
+        # The user's input is a string that the user enters into the chat interface.
+        return result["answer"]
+    
+    if 'history' not in st.session_state:
+        st.session_state['history'] = []
 
+    if 'generated' not in st.session_state:
+        st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this" + uploaded_file.name]
 
-### ローカルドキュメントから情報を取得する
+    if 'past' not in st.session_state:
+        st.session_state['past'] = ["Hi!"]
+        
+    # This container will be used to display the chat history.
+    response_container = st.container()
+    # This container will be used to display the user's input and the response from the ChatOpenAI model.
+    container = st.container()
 
-loader = PyPDFLoader("test2.pdf")
-pages = loader.load_and_split()
+    with container:
+        with st.form(key='my_form', clear_on_submit=True):
+            
+            user_input = st.text_input("Input:", placeholder="Please enter your message regarding the PDF data.", key='input')
+            submit_button = st.form_submit_button(label='Send')
+            
+        if submit_button and user_input:
+            output = conversational_chat(user_input)
+            
+            st.session_state['past'].append(user_input)
+            st.session_state['generated'].append(output)
 
-chunks = pages
-print("step2")
-
-# Get embedding model
-embeddings = OpenAIEmbeddings()
-
-
-
-
-
-#  vector databaseの作成
-db = FAISS.from_documents(chunks, embeddings)
-
-query = "遊技球について"
-# FAISSに対して検索。検索は文字一致ではなく意味一致で検索する(Vector, Embbeding)
-docs = db.similarity_search(query)
-docs # ここで関係のありそうなデータが返ってきていることを確認できる
-
-print("step7")
-# 得られた情報から回答を導き出すためのプロセスを以下の4つから選択する。いずれもProsとConsがあるため、適切なものを選択する必要がある。
-# staffing ... 得られた候補をそのままインプットとする
-# map_reduce ... 得られた候補のサマリをそれぞれ生成し、そのサマリのサマリを作ってインプットとする
-# map_rerank ... 得られた候補にそれぞれスコアを振って、いちばん高いものをインプットとして回答を得る
-# refine  ... 得られた候補のサマリを生成し、次にそのサマリと次の候補の様裏を作ることを繰り返す
-chain = load_qa_chain(OpenAI(temperature=0.1,max_tokens=1000), chain_type="stuff")
-# p305に記載
-#query = "ドライブのランプが赤色に点滅しているが、これは何が原因か？"
-# p134に記載
-#query = "どの様な時にメイン機が異常だと判断をしますか？"
-query = "図柄の組み合わせ"
-docs = db.similarity_search(query)
-print("step8")
-
-# langchainを使って検索
-chain.run(input_documents=docs, question=query)
-
-from IPython.display import display
-import ipywidgets as widgets
-
-print("step9")
-# vectordbをretrieverとして使うconversation chainを作成します。これはチャット履歴の管理も可能にします。
-qa = ConversationalRetrievalChain.from_llm(OpenAI(temperature=0.1), db.as_retriever())
-
-chat_history = []
-
-# print("step10")
-# def on_submit(_):
-#     query = input_box.value
-#     input_box.value = ""
-#
-#     if query.lower() == 'exit':
-#         print("Thank you for using the State of the Union chatbot!")
-#         return
-#
-#     result = qa({"question": query, "chat_history": chat_history})
-#     chat_history.append((query, result['answer']))
-
-
-# ユーザーインターフェイスの構築
-st.title(" 「パチスロ規則アシスタント」ボット")
-# st.image("Assistant.png")
-st.write("規則について聞いてください")
-
-user_input = st.text_input("メッセージを入力してください。", key="user_input", on_change=communicate)
-
-if st.session_state["messages"]:
-    messages = st.session_state["messages"]
-
-    for message in reversed(messages[1:]):  # 直近のメッセージを上に
-        speaker = "🙂"
-        if message["role"]=="assistant":
-            speaker="🤖"
-
-        st.write(speaker + ": " + message["content"])
-
-
+    if st.session_state['generated']:
+        with response_container:
+            for i in range(len(st.session_state['generated'])):
+                message(st.session_state["past"][i], is_user=True, key=str(i) + '_user', avatar_style="big-smile")
+                message(st.session_state["generated"][i], key=str(i), avatar_style="thumbs")
