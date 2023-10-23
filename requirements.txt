@@ -1,10 +1,1 @@
-streamlit==1.20.0
-openai==0.28.0
-pandas
-transformers==4.32.1
-langchain==0.0.279
-textract
-requests
-pypdf
-tiktoken
-faiss-gpu
+streamlit streamlit_chat langchain openai faiss-cpu tiktoken pypdf
