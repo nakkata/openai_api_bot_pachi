@@ -22,6 +22,8 @@ from langchain.chains import ConversationalRetrievalChain
 
 openai.api_key = st.secrets.OpenAIAPI.openai_api_key
 
+print(openai.api_key)
+
 system_prompt = """
 あなたはパチスロ規則を把握した優秀なアシスタントです。
 質問に対して適切な対処法のアドバイスを行ってください。
