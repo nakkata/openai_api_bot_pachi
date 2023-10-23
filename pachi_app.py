@@ -75,8 +75,6 @@ st.title(" 「パチスロ規則アシスタント」ボット")
 # st.image("Assistant.png")
 st.write("規則について聞いてください")
 
-st.write(openai.api_key)
-
 user_input = st.text_input("メッセージを入力してください。", key="user_input", on_change=communicate)
 
 if st.session_state["messages"]:
