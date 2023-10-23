@@ -68,6 +68,17 @@ pages = loader.load_and_split()
 chunks = pages
 print("step2")
 
+# Get embedding model
+embeddings = OpenAIEmbeddings()
+
+
+
+
+
+
+
+
+
 
 
 # ユーザーインターフェイスの構築
