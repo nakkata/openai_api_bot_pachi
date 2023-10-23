@@ -4,6 +4,22 @@ import streamlit as st
 import openai
 # import secret_keys  # 外部ファイルにAPI keyを保存
 
+import os
+import pandas as pd
+import requests
+import textract
+import codecs
+from bs4 import BeautifulSoup
+import matplotlib.pyplot as plt
+from transformers import GPT2TokenizerFast
+from langchain.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.chains.question_answering import load_qa_chain
+from langchain.llms import OpenAI
+from langchain.chains import ConversationalRetrievalChain
+
 openai.api_key = st.secrets.OpenAIAPI.openai_api_key
 
 system_prompt = """
