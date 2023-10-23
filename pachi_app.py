@@ -10,7 +10,7 @@ import requests
 import textract
 import codecs
 from bs4 import BeautifulSoup
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from transformers import GPT2TokenizerFast
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
