@@ -72,7 +72,7 @@ print("step2")
 
 # ユーザーインターフェイスの構築
 st.title(" 「パチスロ規則アシスタント」ボット")
-st.image("Assistant.png")
+# st.image("Assistant.png")
 st.write("規則について聞いてください")
 
 st.write(openai.api_key)
