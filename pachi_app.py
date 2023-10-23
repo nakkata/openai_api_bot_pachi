@@ -75,10 +75,52 @@ embeddings = OpenAIEmbeddings()
 
 
 
+#  vector databaseの作成
+db = FAISS.from_documents(chunks, embeddings)
 
+query = "遊技球について"
+# FAISSに対して検索。検索は文字一致ではなく意味一致で検索する(Vector, Embbeding)
+docs = db.similarity_search(query)
+docs # ここで関係のありそうなデータが返ってきていることを確認できる
 
+print("step7")
+# 得られた情報から回答を導き出すためのプロセスを以下の4つから選択する。いずれもProsとConsがあるため、適切なものを選択する必要がある。
+# staffing ... 得られた候補をそのままインプットとする
+# map_reduce ... 得られた候補のサマリをそれぞれ生成し、そのサマリのサマリを作ってインプットとする
+# map_rerank ... 得られた候補にそれぞれスコアを振って、いちばん高いものをインプットとして回答を得る
+# refine  ... 得られた候補のサマリを生成し、次にそのサマリと次の候補の様裏を作ることを繰り返す
+chain = load_qa_chain(OpenAI(temperature=0.1,max_tokens=1000), chain_type="stuff")
+# p305に記載
+#query = "ドライブのランプが赤色に点滅しているが、これは何が原因か？"
+# p134に記載
+#query = "どの様な時にメイン機が異常だと判断をしますか？"
+query = "図柄の組み合わせ"
+docs = db.similarity_search(query)
+print("step8")
 
+# langchainを使って検索
+chain.run(input_documents=docs, question=query)
 
+from IPython.display import display
+import ipywidgets as widgets
+
+print("step9")
+# vectordbをretrieverとして使うconversation chainを作成します。これはチャット履歴の管理も可能にします。
+qa = ConversationalRetrievalChain.from_llm(OpenAI(temperature=0.1), db.as_retriever())
+
+chat_history = []
+
+# print("step10")
+# def on_submit(_):
+#     query = input_box.value
+#     input_box.value = ""
+#
+#     if query.lower() == 'exit':
+#         print("Thank you for using the State of the Union chatbot!")
+#         return
+#
+#     result = qa({"question": query, "chat_history": chat_history})
+#     chat_history.append((query, result['answer']))
 
 
 # ユーザーインターフェイスの構築
