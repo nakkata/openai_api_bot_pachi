@@ -22,7 +22,6 @@ from langchain.chains import ConversationalRetrievalChain
 
 openai.api_key = st.secrets.OpenAIAPI.openai_api_key
 
-print(openai.api_key)
 
 system_prompt = """
 あなたはパチスロ規則を把握した優秀なアシスタントです。
@@ -70,6 +69,8 @@ chunks = pages
 print("step2")
 
 
+print(openai.api_key)
+"""
 # Get embedding model
 embeddings = OpenAIEmbeddings()
 
@@ -137,3 +138,4 @@ if st.session_state["messages"]:
             speaker="🤖"
 
         st.write(speaker + ": " + message["content"])
+"""
