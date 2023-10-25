@@ -9,14 +9,8 @@ from langchain.vectorstores import FAISS
 import tempfile
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-user_api_key = st.sidebar.text_input(
-    label="OpenAI API key",
-    placeholder="Paste your openAI API key here",
-    type="password")
-
 uploaded_file = st.sidebar.file_uploader("upload", type="pdf")
-
-os.environ['OPENAI_API_KEY'] = user_api_key
+os.environ['OPENAI_API_KEY'] = st.secrets.OpenAIAPI.openai_api_key
 
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size = 2000,
