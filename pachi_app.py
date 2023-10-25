@@ -26,10 +26,10 @@ if uploaded_file :
     loader = PyPDFLoader(file_path=tmp_file_path)  
     data = loader.load_and_split(text_splitter)
 
-    embeddings = OpenAIEmbeddings()
-    vectors = FAISS.from_documents(data, embeddings)
+embeddings = OpenAIEmbeddings()
+vectors = FAISS.from_documents(data, embeddings)
 
-    chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo-16k'),retriever=vectors.as_retriever())
+chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo-16k'),retriever=vectors.as_retriever())
 
 # This function takes a query as input and returns a response from the ChatOpenAI model.
 def conversational_chat(query):
