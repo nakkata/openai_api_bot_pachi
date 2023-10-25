@@ -23,39 +23,39 @@ if uploaded_file :
         tmp_file.write(uploaded_file.getvalue())
         tmp_file_path = tmp_file.name
 
-        loader = PyPDFLoader(file_path=tmp_file_path)  
-        data = loader.load_and_split(text_splitter)
+    loader = PyPDFLoader(file_path=tmp_file_path)  
+    data = loader.load_and_split(text_splitter)
 
-        embeddings = OpenAIEmbeddings()
-        vectors = FAISS.from_documents(data, embeddings)
+embeddings = OpenAIEmbeddings()
+    vectors = FAISS.from_documents(data, embeddings)
 
-        chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo-16k'),retriever=vectors.as_retriever())
+    chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo-16k'),retriever=vectors.as_retriever())
 
-# This function takes a query as input and returns a response from the ChatOpenAI model.
-def conversational_chat(query):
+    # This function takes a query as input and returns a response from the ChatOpenAI model.
+    def conversational_chat(query):
 
-    # The ChatOpenAI model is a language model that can be used to generate text, translate languages, write different kinds of creative content, and answer your questions in an informative way.
-    result = chain({"question": query, "chat_history": st.session_state['history']})
-    # The chat history is a list of tuples, where each tuple contains a query and the response that was generated from that query.
-    st.session_state['history'].append((query, result["answer"]))
+        # The ChatOpenAI model is a language model that can be used to generate text, translate languages, write different kinds of creative content, and answer your questions in an informative way.
+        result = chain({"question": query, "chat_history": st.session_state['history']})
+        # The chat history is a list of tuples, where each tuple contains a query and the response that was generated from that query.
+        st.session_state['history'].append((query, result["answer"]))
         
-    # The user's input is a string that the user enters into the chat interface.
-    return result["answer"]
+        # The user's input is a string that the user enters into the chat interface.
+        return result["answer"]
     
-if 'history' not in st.session_state:
-    st.session_state['history'] = []
+    if 'history' not in st.session_state:
+        st.session_state['history'] = []
 
-if 'generated' not in st.session_state:
-    st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this"]
-    # st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this" + uploaded_file.name]
+    if 'generated' not in st.session_state:
+        st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this"]
+        # st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this" + uploaded_file.name]
 
-if 'past' not in st.session_state:
-    st.session_state['past'] = ["Hi!"]
+    if 'past' not in st.session_state:
+        st.session_state['past'] = ["Hi!"]
         
-# This container will be used to display the chat history.
-response_container = st.container()
-# This container will be used to display the user's input and the response from the ChatOpenAI model.
-container = st.container()
+    # This container will be used to display the chat history.
+    response_container = st.container()
+    # This container will be used to display the user's input and the response from the ChatOpenAI model.
+    container = st.container()
 
 with container:
     with st.form(key='my_form', clear_on_submit=True):
