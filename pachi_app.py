@@ -9,20 +9,19 @@ from langchain.vectorstores import FAISS
 import tempfile
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-
+uploaded_file = st.sidebar.file_uploader("upload", type="pdf")
 os.environ['OPENAI_API_KEY'] = st.secrets.OpenAIAPI.openai_api_key
 
 text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 2000,
-        chunk_overlap  = 100,
-        length_function = len,
-    
+    chunk_size = 2000,
+    chunk_overlap  = 100,
+    length_function = len,
 )
 
 if uploaded_file :
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-        tmp_file.write(uploaded_file.getvalue())
-        tmp_file_path = tmp_file.name
+    tmp_file.write(uploaded_file.getvalue())
+    tmp_file_path = tmp_file.name
 
     loader = PyPDFLoader(file_path=tmp_file_path)  
     data = loader.load_and_split(text_splitter)
@@ -33,25 +32,25 @@ if uploaded_file :
     chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo-16k'),
                                                                       retriever=vectors.as_retriever())
 
-    # This function takes a query as input and returns a response from the ChatOpenAI model.
-    def conversational_chat(query):
+# This function takes a query as input and returns a response from the ChatOpenAI model.
+def conversational_chat(query):
 
-        # The ChatOpenAI model is a language model that can be used to generate text, translate languages, write different kinds of creative content, and answer your questions in an informative way.
-        result = chain({"question": query, "chat_history": st.session_state['history']})
-        # The chat history is a list of tuples, where each tuple contains a query and the response that was generated from that query.
-        st.session_state['history'].append((query, result["answer"]))
+    # The ChatOpenAI model is a language model that can be used to generate text, translate languages, write different kinds of creative content, and answer your questions in an informative way.
+    result = chain({"question": query, "chat_history": st.session_state['history']})
+    # The chat history is a list of tuples, where each tuple contains a query and the response that was generated from that query.
+    st.session_state['history'].append((query, result["answer"]))
         
-        # The user's input is a string that the user enters into the chat interface.
-        return result["answer"]
+    # The user's input is a string that the user enters into the chat interface.
+    return result["answer"]
     
-    if 'history' not in st.session_state:
-        st.session_state['history'] = []
+if 'history' not in st.session_state:
+    st.session_state['history'] = []
 
-    if 'generated' not in st.session_state:
-        st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this" + uploaded_file.name]
+if 'generated' not in st.session_state:
+    st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this" + uploaded_file.name]
 
-    if 'past' not in st.session_state:
-        st.session_state['past'] = ["Hi!"]
+if 'past' not in st.session_state:
+    st.session_state['past'] = ["Hi!"]
         
     # This container will be used to display the chat history.
     response_container = st.container()
