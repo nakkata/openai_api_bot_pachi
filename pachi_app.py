@@ -46,8 +46,8 @@ if 'history' not in st.session_state:
     st.session_state['history'] = []
 
 if 'generated' not in st.session_state:
-    # st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this" + uploaded_file.name]
     st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this"]
+    # st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this" + uploaded_file.name]
 
 if 'past' not in st.session_state:
     st.session_state['past'] = ["Hi!"]
