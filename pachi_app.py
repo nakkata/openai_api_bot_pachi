@@ -52,22 +52,22 @@ if 'generated' not in st.session_state:
 if 'past' not in st.session_state:
     st.session_state['past'] = ["Hi!"]
         
-    # This container will be used to display the chat history.
-    response_container = st.container()
-    # This container will be used to display the user's input and the response from the ChatOpenAI model.
-    container = st.container()
+# This container will be used to display the chat history.
+response_container = st.container()
+# This container will be used to display the user's input and the response from the ChatOpenAI model.
+container = st.container()
 
-    with container:
-        with st.form(key='my_form', clear_on_submit=True):
+with container:
+    with st.form(key='my_form', clear_on_submit=True):
             
-            user_input = st.text_input("Input:", placeholder="Please enter your message regarding the PDF data.", key='input')
-            submit_button = st.form_submit_button(label='Send')
+        user_input = st.text_input("Input:", placeholder="Please enter your message regarding the PDF data.", key='input')
+        submit_button = st.form_submit_button(label='Send')
             
-        if submit_button and user_input:
-            output = conversational_chat(user_input)
+    if submit_button and user_input:
+        output = conversational_chat(user_input)
             
-            st.session_state['past'].append(user_input)
-            st.session_state['generated'].append(output)
+        st.session_state['past'].append(user_input)
+        st.session_state['generated'].append(output)
 
     if st.session_state['generated']:
         with response_container:
