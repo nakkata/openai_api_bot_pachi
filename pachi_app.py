@@ -71,7 +71,7 @@ with container:
     with st.form(key='my_form', clear_on_submit=True):
 
         # テキストボックスに入力を促すメッセージを出力
-        user_input = st.text_input("Input:", placeholder="ここに質問を入力してください。", key='input')
+        user_input = st.text_input("質問を入力:", placeholder="ここに質問を入力してください。", key='input')
         # 送信ボタン
         submit_button = st.form_submit_button(label='送信')
             
