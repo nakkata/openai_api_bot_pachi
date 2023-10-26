@@ -9,37 +9,48 @@ from langchain.vectorstores import FAISS
 import tempfile
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
+# スライドバーにアップローダーをセット
 uploaded_file = st.sidebar.file_uploader("upload", type="pdf")
+# OpenAIのAPIキーをstreamlitの設定から取得
 os.environ['OPENAI_API_KEY'] = st.secrets.OpenAIAPI.openai_api_key
 
+# テキスト分割用の設定
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size = 2000,
     chunk_overlap  = 100,
     length_function = len,
 )
 
+# 学習させるpdfファイルを読み込む処理
 if uploaded_file :
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        # サイドバーから選択したpdfファイル情報を取得
         tmp_file.write(uploaded_file.getvalue())
         tmp_file_path = tmp_file.name
 
+    # pdfファイルを読み込む
     loader = PyPDFLoader(file_path=tmp_file_path)  
+    # ファイルサイズが大きいのでchatgptが分析できるサイズに分割
     data = loader.load_and_split(text_splitter)
 
+    # chatgptで解析するベクトルデータベースを作成
     embeddings = OpenAIEmbeddings()
+
+    # 近似最近傍探索ライブラリを生成
     vectors = FAISS.from_documents(data, embeddings)
 
+    # 回答生成モデルを作成
     chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo-16k'),retriever=vectors.as_retriever())
 
-# This function takes a query as input and returns a response from the ChatOpenAI model.
+# LLM(chatgpt)による回答生成処理
 def conversational_chat(query):
 
-    # The ChatOpenAI model is a language model that can be used to generate text, translate languages, write different kinds of creative content, and answer your questions in an informative way.
+    # 回答生成モデルに質問をセットし回答を出力
     result = chain({"question": query, "chat_history": st.session_state['history']})
-    # The chat history is a list of tuples, where each tuple contains a query and the response that was generated from that query.
+    # 質問、回答を履歴にセット
     st.session_state['history'].append((query, result["answer"]))
         
-    # The user's input is a string that the user enters into the chat interface.
+    #　最新履歴データを返す
     return result["answer"]
     
 if 'history' not in st.session_state:
@@ -59,18 +70,25 @@ container = st.container()
 
 with container:
     with st.form(key='my_form', clear_on_submit=True):
-            
-        user_input = st.text_input("Input:", placeholder="Please enter your message regarding the PDF data.", key='input')
-        submit_button = st.form_submit_button(label='Send')
+
+        # テキストボックスに入力を促すメッセージを出力
+        user_input = st.text_input("Input:", placeholder="ここに質問を入力してください。", key='input')
+        # 送信ボタン
+        submit_button = st.form_submit_button(label='送信')
             
     if submit_button and user_input:
+        # 質問内容からchatgptの回答を取得
         output = conversational_chat(user_input)
-            
+
+        # チャット上に質問内容をセット
         st.session_state['past'].append(user_input)
+        # チャット上に回答内容をセット
         st.session_state['generated'].append(output)
 
 if st.session_state['generated']:
     with response_container:
         for i in range(len(st.session_state['generated'])):
+            # GUI上に質問者の質問内容を表示
             message(st.session_state["past"][i], is_user=True, key=str(i) + '_user', avatar_style="big-smile")
+            # GUI上に回答内容を表示
             message(st.session_state["generated"][i], key=str(i), avatar_style="thumbs")
