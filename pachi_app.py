@@ -10,7 +10,7 @@ import tempfile
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # スライドバーにアップローダーをセット
-uploaded_file = st.sidebar.file_uploader("upload", type="pdf")
+uploaded_file = st.sidebar.file_uploader("読み込むpdfファイルを選択してください", type="pdf")
 # OpenAIのAPIキーをstreamlitの設定から取得
 os.environ['OPENAI_API_KEY'] = st.secrets.OpenAIAPI.openai_api_key
 
@@ -57,15 +57,14 @@ if 'history' not in st.session_state:
     st.session_state['history'] = []
 
 if 'generated' not in st.session_state:
-    st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this"]
-    # st.session_state['generated'] = ["Hello! Feel free to ask about anything regarding this" + uploaded_file.name]
+    st.session_state['generated'] = ["こんにちは！pdfを読み込ませて、質問を入力してください。"]
 
 if 'past' not in st.session_state:
-    st.session_state['past'] = ["Hi!"]
+    st.session_state['past'] = ["こんにちは!"]
         
-# This container will be used to display the chat history.
+# スライドバーコンテナを生成
 response_container = st.container()
-# This container will be used to display the user's input and the response from the ChatOpenAI model.
+# コンテナをセット
 container = st.container()
 
 with container:
